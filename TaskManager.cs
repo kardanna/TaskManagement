@@ -2,28 +2,36 @@ namespace TaskManagement;
 
 class TaskManager
 {
-    private DatabaseConnection _dbConnection = new();
+    private readonly DatabaseConnection _dbConnection;
+    private readonly Repository<TaskItem> _repository;
     public void SetDbConnectionString(string connectionString) => _dbConnection.ConnectionString = connectionString;
     public void MapTaskEnityTo(string tableName) => _dbConnection.Mapper[typeof(TaskItem).ToString()] = tableName;
-    public Repository<TaskItem> GetTaskRepository() => new Repository<TaskItem>(_dbConnection);
     
-    private Dictionary<int, IFeature> _features { get; } = new();
-    public void AddFeature(IFeature feature) => _features.Add(_features.Count + 1, feature);
+    private Dictionary<int, (string FeatureName, Action Feature)> _features = new();
     private void DisplayAllFeatures()
     {
         Console.WriteLine("Available actions:");
         foreach (var feature in _features)
         {
-            Console.WriteLine($"{feature.Key,3}. {feature.Value.Name}");
+            Console.WriteLine($"{feature.Key,3}. {feature.Value.FeatureName}");
         }
     }
+    public TaskManager()
+    {
+        _dbConnection = new();
+        _repository = new(_dbConnection);
+        _features.Add(1, ("Add new task", AddNewTask));
+        _features.Add(2, ("Print all tasks", PrintAllTasks));
+        _features.Add(3, ("Mark task as completed", CompleteTask));
+        _features.Add(4, ("Delete a task", DeleteTask));
+    }
 
-    private IFeature PromtAction()
+    private Action PromtAction()
     {
         while (true)
         {
             int number = UserInput.PromtInt("Enter action #: ", "Invalid action number. Please, try again: ", nameof(number));
-            if (_features.TryGetValue(number, out IFeature? output)) return output;
+            if (_features.TryGetValue(number, out (string FeatureName, Action Feature) output)) return output.Feature;
             Console.WriteLine($"No action with #{number}");
         }
     }
@@ -41,7 +49,7 @@ class TaskManager
             try
             {
                 DisplayAllFeatures();
-                PromtAction().Execute();
+                PromtAction().Invoke();
             }
             catch (ArgumentNullException e)
             {
@@ -56,8 +64,64 @@ class TaskManager
                 Console.WriteLine("Exiting...");
                 return;
             }
-            
+
         }
         while (UserInput.PromtYesNo("Do you want to exit (y/n): ") == YesNoResponse.No);
+    }
+
+    private void AddNewTask()
+    {
+        TaskItem newTask = new()
+        {
+            Title = UserInput.PromtString("Enter task title: ", "Title cannot be empty. Please, try again: ", nameof(newTask.Title)),
+            Description = UserInput.PromtString("Enter task description: ", "Description cannot be empty. Please, try again: ", nameof(newTask.Description)),
+            IsCompleted = false,
+            CreatedAt = DateTime.Now
+        };
+
+        _repository.Add(newTask);
+    }
+
+    public void PrintAllTasks()
+    {
+        Console.WriteLine($"  # | {"Title",-25} | {"Description",-50} | Compl. | CreatedAt");
+
+        foreach (var entry in _repository.GetAll())
+        {
+            Console.WriteLine(entry);
+        }
+    }
+
+    public void CompleteTask()
+    {
+        var task = _repository.Get(
+            UserInput.PromtInt("Enter task # to set as completed: ")
+            );
+
+        if (task == null)
+        {
+            Console.WriteLine("No task found with specified #");
+            return;
+        }
+
+        task.IsCompleted = true;
+        _repository.Update(task);
+        Console.WriteLine($"Task #{task.Id} is successfully completed!");
+    }
+    
+    public void DeleteTask()
+    {
+        var task = _repository.Get(
+            UserInput.PromtInt("Enter task # to delete: ")
+            );
+
+        if (task == null)
+        {
+            Console.WriteLine("No task found with specified #");
+            return;
+        }
+
+        _repository.Delete(task.Id);
+        Console.WriteLine($"Task #{task.Id} is successfully deleted!");
     }
 }
