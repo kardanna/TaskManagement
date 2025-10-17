@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using Dapper;
@@ -7,6 +8,21 @@ namespace TaskManagement;
 class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T : class
 {
     private readonly IDatabaseConnection _dbConnection = dbConnection;
+    private readonly Lazy<PropertyInfo[]> _entityFieldsExceptPK =
+        new(
+            typeof(T)
+                .GetProperties()
+                .Where(p => p.CustomAttributes.All(a => !(a.AttributeType == typeof(KeyAttribute))))
+                .ToArray()
+        );
+    private readonly Lazy<string> _PKFieldName =
+        new(
+            typeof(T)
+                .GetProperties()
+                .Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(KeyAttribute)))
+                .First()
+                .Name
+        );
 
     public void Add(T entry)
     {
@@ -17,23 +33,18 @@ class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T :
         
         using var connection = _dbConnection.GetSqlConnection();
 
-        PropertyInfo[] properties = typeof(T)
-            .GetProperties()
-            .Where((f) => !f.Name.Equals("id", StringComparison.CurrentCultureIgnoreCase))
-            .ToArray();
-
         var parameters = new DynamicParameters(entry);
 
         var sb = new StringBuilder($"INSERT INTO {table} (");
-        foreach (var property in properties)
+        foreach (var field in _entityFieldsExceptPK.Value)
         {
-            sb.Append($"{property.Name}, ");
+            sb.Append($"{field.Name}, ");
         }
         sb.Length -= 2;
         sb.Append(") VALUES (");
-        foreach (var property in properties)
+        foreach (var field in _entityFieldsExceptPK.Value)
         {
-            sb.Append($"@{property.Name}, ");
+            sb.Append($"@{field.Name}, ");
         }
         sb.Length -= 2;
         sb.Append(')');
@@ -50,13 +61,7 @@ class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T :
 
         using var connection = _dbConnection.GetSqlConnection();
 
-        string idFieldName = typeof(T)
-            .GetProperties()
-            .Where((f) => f.Name.Equals("id", StringComparison.CurrentCultureIgnoreCase))
-            .First()
-            .Name;
-
-        var sql = $"DELETE FROM {table} WHERE {idFieldName} = @idInput";
+        var sql = $"DELETE FROM {table} WHERE {_PKFieldName.Value} = @idInput";
         connection.Execute(sql, new { idInput = id });
     }
 
@@ -83,13 +88,7 @@ class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T :
 
         using var connection = _dbConnection.GetSqlConnection();
 
-        string idFieldName = typeof(T)
-            .GetProperties()
-            .Where((f) => f.Name.Equals("id", StringComparison.CurrentCultureIgnoreCase))
-            .First()
-            .Name;
-
-        var sql = $"SELECT * FROM {table} WHERE {idFieldName} = @idInput";
+        var sql = $"SELECT * FROM {table} WHERE {_PKFieldName.Value} = @idInput";
         var task = connection.QuerySingleOrDefault<T>(sql, new { idInput = id });
         return task!;
     }
@@ -103,25 +102,15 @@ class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T :
 
         using var connection = _dbConnection.GetSqlConnection();
 
-        string idFieldName = typeof(T)
-            .GetProperties()
-            .Where((f) => f.Name.Equals("id", StringComparison.CurrentCultureIgnoreCase))
-            .First().Name;
-
-        PropertyInfo[] properties = typeof(T)
-            .GetProperties()
-            .Where((f) => !f.Name.Equals("id", StringComparison.CurrentCultureIgnoreCase))
-            .ToArray();
-
         var parameters = new DynamicParameters(entry);
 
         var sb = new StringBuilder($"UPDATE {table} SET ");
-        foreach (var property in properties)
+        foreach (var field in _entityFieldsExceptPK.Value)
         {
-            sb.Append($"{property.Name} = @{property.Name}, ");
+            sb.Append($"{field.Name} = @{field.Name}, ");
         }
         sb.Length -= 2;
-        sb.Append($" WHERE {idFieldName} = @{idFieldName};");
+        sb.Append($" WHERE {_PKFieldName.Value} = @{_PKFieldName.Value};");
 
         connection.Execute(sb.ToString(), parameters);
     }
