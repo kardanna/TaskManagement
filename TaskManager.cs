@@ -58,6 +58,6 @@ class TaskManager
             }
             
         }
-        while (!UserInput.PromtYesNo("Do you want to exit (y/n): ", "Invalid input. Please try again (y/n): "));
+        while (UserInput.PromtYesNo("Do you want to exit (y/n): ") == YesNoResponse.No);
     }
 }

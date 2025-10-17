@@ -25,15 +25,15 @@ static class UserInput
         return output;
     }
 
-    public static bool PromtYesNo(string promtMessage, string errorMessage, string parameterName = "Not specified")
+    public static YesNoResponse PromtYesNo(string promtMessage, string errorMessage = "Invalid input. Please try again (y/n): ", string parameterName = "Not specified")
     {
         Console.Write(promtMessage);
         string output;
         while (true)
         {
             output = Console.ReadLine()?.Trim().ToLower() ?? throw new ArgumentNullException(parameterName, "Console input is null!");
-            if (output == "yes" || output == "y") return true;
-            if (output == "no" || output == "n") return false;
+            if (output == "yes" || output == "y") return YesNoResponse.Yes;
+            if (output == "no" || output == "n") return YesNoResponse.No;
             Console.Write(errorMessage);
         }
     }
