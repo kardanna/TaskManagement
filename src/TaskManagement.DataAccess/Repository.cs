@@ -45,9 +45,9 @@ public class Repository<T> : IRepository<T> where T : class
 
         _tableName = table;
 
-        _deleteStatement = $"DELETE FROM {_tableName} WHERE {_PKFieldName.Value} = @idInput";
+        _deleteStatement = $"DELETE FROM {_tableName} WHERE {_PKFieldName.Value} = @id";
         _selectAllStatement = $"SELECT * FROM {_tableName}";
-        _selectByIdStatement = $"SELECT * FROM {_tableName} WHERE {_PKFieldName.Value} = @idInput";
+        _selectByIdStatement = $"SELECT * FROM {_tableName} WHERE {_PKFieldName.Value} = @id";
 
         _insertStatement = new(() =>
         {
@@ -78,7 +78,7 @@ public class Repository<T> : IRepository<T> where T : class
     public void Delete(int id)
     {
         using var connection = _dbConnection.GetSqlConnection();
-        connection.Execute(_deleteStatement, new { idInput = id });
+        connection.Execute(_deleteStatement, new { id });
     }
 
     public IEnumerable<T> GetAll()
@@ -90,7 +90,7 @@ public class Repository<T> : IRepository<T> where T : class
     public T Get(int id)
     {
         using var connection = _dbConnection.GetSqlConnection();
-        return connection.QuerySingleOrDefault<T>(_selectByIdStatement, new { idInput = id })!;
+        return connection.QuerySingleOrDefault<T>(_selectByIdStatement, new { id })!;
     }
 
     public void Update(T entry)
