@@ -17,15 +17,14 @@ public class Repository<T> : IRepository<T> where T : class
 
     private readonly Lazy<string> _insertStatement;
     private readonly Lazy<string> _updateStatement;
-    
-    private readonly Lazy<string> _PKFieldName =
-        new(
-            typeof(T)
-                .GetProperties()
-                .Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(KeyAttribute)))
-                .First()
-                .Name
-        );
+
+    private readonly string _PKFieldName =
+        typeof(T)
+            .GetProperties()
+            .Where(p => p.CustomAttributes.Any(a => a.AttributeType == typeof(KeyAttribute)))
+            .First()
+            .Name;
+
     private readonly Lazy<PropertyInfo[]> _entityFieldsExceptPK =
         new(
             typeof(T)
@@ -45,9 +44,9 @@ public class Repository<T> : IRepository<T> where T : class
 
         _tableName = table;
 
-        _deleteStatement = $"DELETE FROM {_tableName} WHERE {_PKFieldName.Value} = @id";
+        _deleteStatement = $"DELETE FROM {_tableName} WHERE {_PKFieldName} = @id";
         _selectAllStatement = $"SELECT * FROM {_tableName}";
-        _selectByIdStatement = $"SELECT * FROM {_tableName} WHERE {_PKFieldName.Value} = @id";
+        _selectByIdStatement = $"SELECT * FROM {_tableName} WHERE {_PKFieldName} = @id";
 
         _insertStatement = new(() =>
         {
@@ -63,7 +62,7 @@ public class Repository<T> : IRepository<T> where T : class
         {
             var sb = new StringBuilder($"UPDATE {table} SET ");
             sb.AppendJoin(", ", _entityFieldsExceptPK.Value.Select(f => $"{f.Name} = @{f.Name}"));
-            sb.Append($" WHERE {_PKFieldName.Value} = @{_PKFieldName.Value}");
+            sb.Append($" WHERE {_PKFieldName} = @{_PKFieldName}");
             return sb.ToString();
         });
     }    
