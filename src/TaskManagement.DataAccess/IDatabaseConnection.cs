@@ -1,9 +1,10 @@
 using Microsoft.Data.SqlClient;
 
-namespace TaskManagement;
+namespace TaskManagement.DataAccess;
 
-interface IDatabaseConnection
+public interface IDatabaseConnection
 {
     public Dictionary<string, string> Mapper { get; }
+    public string ConnectionString { get; set; }
     public SqlConnection GetSqlConnection();
 }

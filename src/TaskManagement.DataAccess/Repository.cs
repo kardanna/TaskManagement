@@ -3,9 +3,9 @@ using System.Reflection;
 using System.Text;
 using Dapper;
 
-namespace TaskManagement;
+namespace TaskManagement.DataAccess;
 
-class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T : class
+public class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T : class
 {
     private readonly IDatabaseConnection _dbConnection = dbConnection;
     private readonly Lazy<PropertyInfo[]> _entityFieldsExceptPK =

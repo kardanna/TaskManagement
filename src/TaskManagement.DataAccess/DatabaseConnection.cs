@@ -1,11 +1,11 @@
 using Microsoft.Data.SqlClient;
 
-namespace TaskManagement;
+namespace TaskManagement.DataAccess;
 
-class DatabaseConnection : IDatabaseConnection
+public class DatabaseConnection : IDatabaseConnection
 {
     public Dictionary<string, string> Mapper { get; } = [];
-    public string ConnectionString = string.Empty;
+    public string ConnectionString { get; set; } = string.Empty;
     public SqlConnection GetSqlConnection()
     {
         return new SqlConnection(ConnectionString);

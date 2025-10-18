@@ -1,12 +1,11 @@
+using TaskManagement.DataAccess;
+
 namespace TaskManagement;
 
 class TaskManager
 {
-    private readonly DatabaseConnection _dbConnection;
-    private readonly Repository<TaskItem> _repository;
-    public void SetDbConnectionString(string connectionString) => _dbConnection.ConnectionString = connectionString;
-    public void MapTaskEnityTo(string tableName) => _dbConnection.Mapper[typeof(TaskItem).ToString()] = tableName;
-    
+    private readonly IRepository<TaskItem> _repository;
+
     private Dictionary<int, (string FeatureName, Action Feature)> _features = new();
     private void DisplayAllFeatures()
     {
@@ -16,10 +15,9 @@ class TaskManager
             Console.WriteLine($"{feature.Key,3}. {feature.Value.FeatureName}");
         }
     }
-    public TaskManager()
+    public TaskManager(IRepository<TaskItem> repository)
     {
-        _dbConnection = new();
-        _repository = new(_dbConnection);
+        _repository = repository;
         _features.Add(1, ("Add new task", AddNewTask));
         _features.Add(2, ("Print all tasks", PrintAllTasks));
         _features.Add(3, ("Mark task as completed", CompleteTask));
@@ -38,12 +36,6 @@ class TaskManager
 
     public void Start()
     {
-        if (!_dbConnection.Mapper.TryGetValue(typeof(TaskItem).ToString(), out _) || _dbConnection.ConnectionString == string.Empty)
-        {
-            Console.WriteLine("Database connection is not configured! Exiting...");
-            return;
-        }
-
         do
         {
             try
@@ -108,7 +100,7 @@ class TaskManager
         _repository.Update(task);
         Console.WriteLine($"Task #{task.Id} is successfully completed!");
     }
-    
+
     public void DeleteTask()
     {
         var task = _repository.Get(

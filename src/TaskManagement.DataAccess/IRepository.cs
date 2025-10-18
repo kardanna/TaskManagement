@@ -1,6 +1,6 @@
-namespace TaskManagement;
+namespace TaskManagement.DataAccess;
 
-interface IRepository<T> where T : class
+public interface IRepository<T> where T : class
 {
     public IEnumerable<T> GetAll();
     public T Get(int id);
