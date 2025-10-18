@@ -5,16 +5,19 @@ using Dapper;
 
 namespace TaskManagement.DataAccess;
 
-public class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> where T : class
+public class Repository<T> : IRepository<T> where T : class
 {
-    private readonly IDatabaseConnection _dbConnection = dbConnection;
-    private readonly Lazy<PropertyInfo[]> _entityFieldsExceptPK =
-        new(
-            typeof(T)
-                .GetProperties()
-                .Where(p => p.CustomAttributes.All(a => !(a.AttributeType == typeof(KeyAttribute))))
-                .ToArray()
-        );
+    private readonly IDatabaseConnection _dbConnection;
+
+    private readonly string _tableName;
+
+    private readonly string _selectAllStatement;
+    private readonly string _selectByIdStatement;
+    private readonly string _deleteStatement;
+
+    private readonly Lazy<string> _insertStatement;
+    private readonly Lazy<string> _updateStatement;
+    
     private readonly Lazy<string> _PKFieldName =
         new(
             typeof(T)
@@ -23,95 +26,77 @@ public class Repository<T>(IDatabaseConnection dbConnection) : IRepository<T> wh
                 .First()
                 .Name
         );
-
-    public void Add(T entry)
+    private readonly Lazy<PropertyInfo[]> _entityFieldsExceptPK =
+        new(
+            typeof(T)
+                .GetProperties()
+                .Where(p => p.CustomAttributes.All(a => !(a.AttributeType == typeof(KeyAttribute))))
+                .ToArray()
+        );
+    
+    public Repository(IDatabaseConnection dbConnection)
     {
+        _dbConnection = dbConnection;
+
         if (!_dbConnection.Mapper.TryGetValue(typeof(T).ToString(), out string? table))
         {
             throw new ApplicationException($"No table registered for class '{typeof(T)}' in database mapper");
         }
-        
+
+        _tableName = table;
+
+        _deleteStatement = $"DELETE FROM {_tableName} WHERE {_PKFieldName.Value} = @idInput";
+        _selectAllStatement = $"SELECT * FROM {_tableName}";
+        _selectByIdStatement = $"SELECT * FROM {_tableName} WHERE {_PKFieldName.Value} = @idInput";
+
+        _insertStatement = new(() =>
+        {
+            var sb = new StringBuilder($"INSERT INTO {_tableName} (");
+            sb.AppendJoin(", ", _entityFieldsExceptPK.Value.Select(f => f.Name));
+            sb.Append(") VALUES (");
+            sb.AppendJoin(", ", _entityFieldsExceptPK.Value.Select(f => $"@{f.Name}"));
+            sb.Append(')');
+            return sb.ToString();
+        });
+
+        _updateStatement = new(() =>
+        {
+            var sb = new StringBuilder($"UPDATE {table} SET ");
+            sb.AppendJoin(", ", _entityFieldsExceptPK.Value.Select(f => $"{f.Name} = @{f.Name}"));
+            sb.Append($" WHERE {_PKFieldName.Value} = @{_PKFieldName.Value}");
+            return sb.ToString();
+        });
+    }    
+
+    public void Add(T entry)
+    {        
         using var connection = _dbConnection.GetSqlConnection();
-
         var parameters = new DynamicParameters(entry);
-
-        var sb = new StringBuilder($"INSERT INTO {table} (");
-        foreach (var field in _entityFieldsExceptPK.Value)
-        {
-            sb.Append($"{field.Name}, ");
-        }
-        sb.Length -= 2;
-        sb.Append(") VALUES (");
-        foreach (var field in _entityFieldsExceptPK.Value)
-        {
-            sb.Append($"@{field.Name}, ");
-        }
-        sb.Length -= 2;
-        sb.Append(')');
-
-        connection.Execute(sb.ToString(), parameters);
+        connection.Execute(_insertStatement.Value, parameters);
     }
 
     public void Delete(int id)
     {
-        if (!_dbConnection.Mapper.TryGetValue(typeof(T).ToString(), out string? table))
-        {
-            throw new ApplicationException($"No table registered for class '{typeof(T)}' in database mapper");
-        }
-
         using var connection = _dbConnection.GetSqlConnection();
-
-        var sql = $"DELETE FROM {table} WHERE {_PKFieldName.Value} = @idInput";
-        connection.Execute(sql, new { idInput = id });
+        connection.Execute(_deleteStatement, new { idInput = id });
     }
 
     public IEnumerable<T> GetAll()
-    {
-        if (!_dbConnection.Mapper.TryGetValue(typeof(T).ToString(), out string? table))
-        {
-            throw new ApplicationException($"No table registered for class '{typeof(T)}' in database mapper");
-        }
-        
-        using var connection = _dbConnection.GetSqlConnection();
-        
-        var sql = $"SELECT * FROM {table}";
-        var tasks = connection.Query<T>(sql).ToList();
-        return tasks;
+    {     
+        using var connection = _dbConnection.GetSqlConnection();        
+        return connection.Query<T>(_selectAllStatement).ToList();
     }
 
     public T Get(int id)
     {
-        if (!_dbConnection.Mapper.TryGetValue(typeof(T).ToString(), out string? table))
-        {
-            throw new ApplicationException($"No table registered for class '{typeof(T)}' in database mapper");
-        }
-
         using var connection = _dbConnection.GetSqlConnection();
-
-        var sql = $"SELECT * FROM {table} WHERE {_PKFieldName.Value} = @idInput";
-        var task = connection.QuerySingleOrDefault<T>(sql, new { idInput = id });
-        return task!;
+        return connection.QuerySingleOrDefault<T>(_selectByIdStatement, new { idInput = id })!;
     }
 
     public void Update(T entry)
     {
-        if (!_dbConnection.Mapper.TryGetValue(typeof(T).ToString(), out string? table))
-        {
-            throw new ApplicationException($"No table registered for class '{typeof(T)}' in database mapper");
-        }
-
         using var connection = _dbConnection.GetSqlConnection();
-
         var parameters = new DynamicParameters(entry);
-
-        var sb = new StringBuilder($"UPDATE {table} SET ");
-        foreach (var field in _entityFieldsExceptPK.Value)
-        {
-            sb.Append($"{field.Name} = @{field.Name}, ");
-        }
-        sb.Length -= 2;
-        sb.Append($" WHERE {_PKFieldName.Value} = @{_PKFieldName.Value};");
-
-        connection.Execute(sb.ToString(), parameters);
+        connection.Execute(_updateStatement.Value, parameters);
     }
 }

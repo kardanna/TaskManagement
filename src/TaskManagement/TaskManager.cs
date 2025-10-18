@@ -15,6 +15,7 @@ class TaskManager
             Console.WriteLine($"{feature.Key,3}. {feature.Value.FeatureName}");
         }
     }
+    
     public TaskManager(IRepository<TaskItem> repository)
     {
         _repository = repository;
