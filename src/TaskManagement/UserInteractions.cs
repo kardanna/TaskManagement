@@ -2,6 +2,11 @@ namespace TaskManagement;
 
 static class UserInput
 {
+    private const string YES_ANSWER_SHORT_STRING = "y";
+    private const string YES_ANSWER_FULL_STRING = "yes";
+    private const string NO_ANSWER_SHORT_STRING = "n";
+    private const string NO_ANSWER_FULL_STRING = "no";
+    
     public static string PromtString(string promtMessage, string errorMessage = "Invalid input. Please, try again: ", string parameterName = "Not specified")
     {
         Console.Write(promtMessage);
@@ -32,8 +37,8 @@ static class UserInput
         while (true)
         {
             output = Console.ReadLine()?.Trim().ToLower() ?? throw new ArgumentNullException(parameterName, "Console input is null!");
-            if (output == "yes" || output == "y") return YesNoResponse.Yes;
-            if (output == "no" || output == "n") return YesNoResponse.No;
+            if (output == YES_ANSWER_FULL_STRING || output == YES_ANSWER_SHORT_STRING) return YesNoResponse.Yes;
+            if (output == NO_ANSWER_FULL_STRING || output == NO_ANSWER_SHORT_STRING) return YesNoResponse.No;
             Console.Write(errorMessage);
         }
     }
