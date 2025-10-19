@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text;
 using Dapper;
+using TaskManagement.Domain;
 
 namespace TaskManagement.DataAccess;
 

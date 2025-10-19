@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement", "src\TaskM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.DataAccess", "src\TaskManagement.DataAccess\TaskManagement.DataAccess.csproj", "{D124990A-4C07-47BB-8EB5-6A3F73410B59}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Domain", "src\TaskManagement.Domain\TaskManagement.Domain.csproj", "{57501CF5-0D83-42B5-AA3B-6F87017ECE54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,18 @@ Global
 		{D124990A-4C07-47BB-8EB5-6A3F73410B59}.Release|x64.Build.0 = Release|Any CPU
 		{D124990A-4C07-47BB-8EB5-6A3F73410B59}.Release|x86.ActiveCfg = Release|Any CPU
 		{D124990A-4C07-47BB-8EB5-6A3F73410B59}.Release|x86.Build.0 = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|x64.Build.0 = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Debug|x86.Build.0 = Debug|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|x64.ActiveCfg = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|x64.Build.0 = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|x86.ActiveCfg = Release|Any CPU
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +64,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7CA734F6-8EBE-46F3-B004-913AA7AA366D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{D124990A-4C07-47BB-8EB5-6A3F73410B59} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{57501CF5-0D83-42B5-AA3B-6F87017ECE54} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

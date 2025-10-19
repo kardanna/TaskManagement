@@ -1,4 +1,4 @@
-namespace TaskManagement.DataAccess;
+namespace TaskManagement.Domain;
 
 public interface IRepository<T> where T : class
 {

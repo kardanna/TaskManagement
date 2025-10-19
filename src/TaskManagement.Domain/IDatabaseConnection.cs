@@ -1,6 +1,6 @@
 using Microsoft.Data.SqlClient;
 
-namespace TaskManagement.DataAccess;
+namespace TaskManagement.Domain;
 
 public interface IDatabaseConnection
 {

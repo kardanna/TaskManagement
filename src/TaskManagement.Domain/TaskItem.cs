@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TaskManagement;
+namespace TaskManagement.Domain;
 
-class TaskItem
+public class TaskItem
 {
     [Key]
     public int Id { get; set; }

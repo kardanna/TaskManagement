@@ -1,4 +1,5 @@
 using Microsoft.Data.SqlClient;
+using TaskManagement.Domain;
 
 namespace TaskManagement.DataAccess;
 
